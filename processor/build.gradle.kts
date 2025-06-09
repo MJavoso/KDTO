@@ -4,7 +4,6 @@ plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id("maven-publish")
     id(libs.plugins.jreleaser.get().pluginId)
-    `kotlin-dsl`
 }
 
 group = "io.github.mjavoso"
@@ -12,13 +11,16 @@ version = "1.0.0-alpha01"
 
 val pluginVersion: String = version.toString()
 val pluginGroup: String = group.toString()
+val isPublishing = project.findProperty("isPublishing").toString().toBoolean()
 
 dependencies {
     implementation(libs.ksp.symbol.processor)
     implementation(libs.kotlin.poet)
-    implementation(project(":annotations"))
-    implementation(localGroovy())
-    implementation(gradleApi())
+    if (isPublishing) {
+        implementation("io.github.mjavoso:kdto-annotations:1.0.0-alpha01")
+    } else {
+        implementation(project(":annotations"))
+    }
     testImplementation(kotlin("test"))
 }
 
@@ -33,16 +35,6 @@ java {
 
 repositories {
     mavenCentral()
-}
-
-gradlePlugin {
-    plugins {
-        create("kdtoPlugin") {
-            id = "io.github.mjavoso.kdto.plugin"
-            version = pluginVersion
-            implementationClass = "com.marcode.kdto.plugin.KDTOGradlePlugin"
-        }
-    }
 }
 
 publishing {
