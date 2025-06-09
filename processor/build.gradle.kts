@@ -3,7 +3,7 @@ import org.jreleaser.model.Active
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id("maven-publish")
-    alias(libs.plugins.jreleaser)
+    id(libs.plugins.jreleaser.get().pluginId)
     `kotlin-dsl`
 }
 
