@@ -26,6 +26,11 @@ kotlin {
     jvmToolchain(21)
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 repositories {
     mavenCentral()
 }
