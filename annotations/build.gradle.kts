@@ -80,7 +80,7 @@ jreleaser {
                 create("sonatype") {
                     setActive("ALWAYS")
                     url = "https://central.sonatype.com/api/v1/publisher"
-                    stagingRepository("target/staging-deploy")
+                    stagingRepository("build/staging-deploy")
                 }
             }
         }
