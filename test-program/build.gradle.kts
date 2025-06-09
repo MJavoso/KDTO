@@ -1,7 +1,7 @@
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     alias(libs.plugins.ksp)
-   id("io.github.mjavoso.kdto.plugin") version "1.0.0-alpha01"
+    id("io.github.mjavoso.kdto.plugin") version "1.0.0-alpha01"
 }
 
 repositories {
