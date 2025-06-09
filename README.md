@@ -47,3 +47,6 @@ To generate the DTO classes, run the Gradle task generateKDto. You can do this f
 - Optionally include or exclude specific properties.
 - Generates clean data class DTOs.
 - Generates mapping extension functions automatically.
+
+## ToDo
+- [ ] Being able to pass annotations to the DTOs, for example, if a class is annotated with `@Serializable`
