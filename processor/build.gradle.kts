@@ -1,8 +1,9 @@
-import org.gradle.kotlin.dsl.provideDelegate
+import org.jreleaser.model.Active
 
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id("maven-publish")
+    alias(libs.plugins.jreleaser)
     `kotlin-dsl`
 }
 
@@ -47,9 +48,54 @@ publishing {
             group = pluginGroup
             artifactId = "kdto-processor"
             version = pluginVersion
+
+            pom {
+                name.set("KDTO Processor")
+                description.set("Generate multiple DTOs and mappers from a single Kotlin data class")
+                url.set("https://github.com/MJavoso/KDTO")
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("MJavoso")
+                        name.set("Marco Pinedo")
+                    }
+                }
+                scm {
+                    url.set("https://github.com/mjavoso/kdto")
+                    connection.set("scm:git:https://github.com/mjavoso/kdto.git")
+                    developerConnection.set("scm:git:ssh://github.com/mjavoso/kdto.git")
+                }
+            }
         }
     }
     repositories {
         mavenLocal()
+        maven {
+            url = uri(layout.buildDirectory.dir("staging-deploy"))
+        }
+    }
+}
+
+jreleaser {
+    gitRootSearch = true
+    signing {
+        active = Active.ALWAYS
+        armored = true
+    }
+    deploy {
+        maven {
+            mavenCentral {
+                create("sonatype") {
+                    setActive("ALWAYS")
+                    url = "https://central.sonatype.com/api/v1/publisher"
+                    stagingRepository("target/staging-deploy")
+                }
+            }
+        }
     }
 }

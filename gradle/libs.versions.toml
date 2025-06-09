@@ -2,6 +2,7 @@
 kotlin = "2.1.21"
 kotlin-poet = "2.2.0"
 ksp = "2.1.21-2.0.1"
+jreleaser = "1.17.0"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref  = "kotlin" }
@@ -11,3 +12,4 @@ kotlin-poet = { module = "com.squareup:kotlinpoet", version.ref = "kotlin-poet" 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
