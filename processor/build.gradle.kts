@@ -11,16 +11,11 @@ version = "1.0.0-alpha01"
 
 val pluginVersion: String = version.toString()
 val pluginGroup: String = group.toString()
-val isPublishing = project.findProperty("isPublishing").toString().toBoolean()
 
 dependencies {
     implementation(libs.ksp.symbol.processor)
     implementation(libs.kotlin.poet)
-    if (isPublishing) {
-        implementation("io.github.mjavoso:kdto-annotations:1.0.0-alpha01")
-    } else {
-        implementation(project(":annotations"))
-    }
+    implementation(project(":annotations"))
     testImplementation(kotlin("test"))
 }
 
