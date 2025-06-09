@@ -14,3 +14,4 @@ rootProject.name = "KDTO"
 include("processor")
 include("annotations")
 include("test-program")
+include("plugin")
