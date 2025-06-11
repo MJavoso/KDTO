@@ -7,6 +7,7 @@ import java.time.LocalDate
         DtoSpec("UserDTO", exclude = ["id"])
     ]
 )
+@MyAnnotation(metadata = "Hello")
 data class User(
     val id: Int? = null,
     val name: String,
