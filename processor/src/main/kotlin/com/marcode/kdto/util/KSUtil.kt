@@ -4,6 +4,11 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSName
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueArgument
+import com.google.devtools.ksp.symbol.Nullability
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.STAR
+import com.squareup.kotlinpoet.TypeName
 
 @Suppress("UNCHECKED_CAST")
 internal fun <T> KSAnnotation.getArgument(index: Int): T? {
@@ -27,4 +32,27 @@ internal fun KSValueArgument.getFormattedValue(): String = when(val value = this
     }
     is KSName -> value.asString()
     else -> value.toString()
+}
+
+internal fun KSType.toTypeName(): TypeName {
+    val decl = this.declaration
+    val pkg = decl.packageName.asString()
+    val simpleName = decl.simpleName.asString()
+
+    val typeArguments = this.arguments.map { arg ->
+        arg.type?.resolve()?.toTypeName() ?: STAR
+    }
+
+    val className = ClassName(pkg, simpleName)
+    val typeName = if (typeArguments.isNotEmpty()) {
+        className.parameterizedBy(typeArguments)
+    } else {
+        className
+    }
+
+    return if (this.nullability == Nullability.NULLABLE) {
+        typeName.copy(nullable = true)
+    } else {
+        typeName
+    }
 }
