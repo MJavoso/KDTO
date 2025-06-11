@@ -4,17 +4,9 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Nullability
 import com.marcode.kdto.processor.data.DtoDeclaration
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.ParameterSpec
+import com.marcode.kdto.util.getFormattedValue
+import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.STAR
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.buildCodeBlock
 
 internal class DTOGenerator(
     private val dtoDeclarations: List<DtoDeclaration>,
@@ -55,9 +47,11 @@ internal class DTOGenerator(
             classSpec.addProperty(propertySpec)
         }
         classSpec.primaryConstructor(constructorSpec.build())
+        dto.addAnnotations(fileSpec, classSpec)
         fileSpec.addType(classSpec.build())
 
-        fileSpec.addFunction(dto.createMappperExtension(fileSpec))
+
+        fileSpec.addFunction(dto.createMappperExtension(fileSpec.packageName))
 
         return fileSpec.build()
     }
@@ -75,8 +69,33 @@ internal class DTOGenerator(
         }
     }
 
-    private fun DtoDeclaration.createMappperExtension(fileSpec: FileSpec.Builder): FunSpec {
-        val dtoType = ClassName(fileSpec.packageName, dtoName)
+    private fun DtoDeclaration.addAnnotations(
+        fileSpec: FileSpec.Builder,
+        classSpec: TypeSpec.Builder,
+    ) {
+        annotations.forEach { annotation ->
+            val annotationDeclaration = annotation.annotationType.resolve().declaration
+            val annotationClassName = ClassName(annotationDeclaration.packageName.asString(), annotationDeclaration.simpleName.asString())
+            val annotationSpec = AnnotationSpec.builder(annotationClassName)
+
+            annotation.arguments.forEach { annotationArgument ->
+                val argName = annotationArgument.name
+                val argValue = annotationArgument.getFormattedValue()
+                if (argName != null) {
+                    annotationSpec.addMember("%L = %L", argName.asString(), argValue)
+                } else {
+                    annotationSpec.addMember("%L", argValue)
+                }
+            }
+
+            println("Adding annotation: ${annotationSpec}")
+            fileSpec.addImport(annotationDeclaration.packageName.asString(), annotationDeclaration.simpleName.asString())
+            classSpec.addAnnotation(annotationSpec.build())
+        }
+    }
+
+    private fun DtoDeclaration.createMappperExtension(packageName: String): FunSpec {
+        val dtoType = ClassName(packageName, dtoName)
         return FunSpec.builder("to$dtoName")
             .receiver(ClassName(originalPackageName, originalClassName))
             .returns(dtoType)
