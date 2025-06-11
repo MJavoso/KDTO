@@ -10,6 +10,7 @@ import java.time.LocalDate
 @MyAnnotation(metadata = "Hello")
 data class User(
     val id: Int? = null,
+    @MyAnnotation(metadata = "This is a field")
     val name: String,
     val birthDate: LocalDate
 )

@@ -1,12 +1,11 @@
 package com.marcode.kdto.generator
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.Nullability
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.util.getFormattedValue
+import com.marcode.kdto.util.toTypeName
 import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
 internal class DTOGenerator(
     private val dtoDeclarations: List<DtoDeclaration>,
@@ -35,17 +34,9 @@ internal class DTOGenerator(
         val classSpec = TypeSpec.classBuilder(dto.dtoName)
             .addModifiers(KModifier.DATA)
         val constructorSpec = FunSpec.constructorBuilder()
-        dto.includedProperties.forEach { property ->
-            val name = property.simpleName.asString()
-            val typeName = property.type.resolve().toTypeName()
-            val paramSpec = ParameterSpec.builder(name, typeName)
-                .build()
-            val propertySpec = PropertySpec.builder(name, typeName, KModifier.PUBLIC)
-                .initializer(name)
-                .build()
-            constructorSpec.addParameter(paramSpec)
-            classSpec.addProperty(propertySpec)
-        }
+
+        dto.addClassProperties(classSpec, constructorSpec)
+
         classSpec.primaryConstructor(constructorSpec.build())
         dto.addAnnotations(fileSpec, classSpec)
         fileSpec.addType(classSpec.build())
@@ -69,6 +60,39 @@ internal class DTOGenerator(
         }
     }
 
+    private fun DtoDeclaration.addClassProperties(classSpec: TypeSpec.Builder, constructorSpec: FunSpec.Builder) {
+        this.includedProperties.forEach { property ->
+            val name = property.simpleName.asString()
+            val typeName = property.type.resolve().toTypeName()
+            val paramSpec = ParameterSpec.builder(name, typeName)
+                .build()
+            val propertySpec = PropertySpec.builder(name, typeName, KModifier.PUBLIC)
+                .initializer(name)
+                .addAnnotations(annotateClassProperty(property))
+                .build()
+            constructorSpec.addParameter(paramSpec)
+            classSpec.addProperty(propertySpec)
+        }
+    }
+
+    private fun annotateClassProperty(property: KSPropertyDeclaration): List<AnnotationSpec> {
+        return property.annotations.map { annotation ->
+            val annotationDecl = annotation.annotationType.resolve().declaration
+            val annotationClass = ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
+            val annotationSpec = AnnotationSpec.builder(annotationClass)
+            annotation.arguments.forEach { argument ->
+                val name = argument.name
+                val value = argument.getFormattedValue()
+                if (name != null) {
+                    annotationSpec.addMember("%L = %L", name.asString(), value)
+                } else {
+                    annotationSpec.addMember("%L", value)
+                }
+            }
+            annotationSpec.build()
+        }.toList()
+    }
+
     private fun DtoDeclaration.addAnnotations(
         fileSpec: FileSpec.Builder,
         classSpec: TypeSpec.Builder,
@@ -88,7 +112,6 @@ internal class DTOGenerator(
                 }
             }
 
-            println("Adding annotation: ${annotationSpec}")
             fileSpec.addImport(annotationDeclaration.packageName.asString(), annotationDeclaration.simpleName.asString())
             classSpec.addAnnotation(annotationSpec.build())
         }
@@ -108,28 +131,5 @@ internal class DTOGenerator(
                 add(")\n")
             })
             .build()
-    }
-
-    private fun KSType.toTypeName(): TypeName {
-        val decl = this.declaration
-        val pkg = decl.packageName.asString()
-        val simpleName = decl.simpleName.asString()
-
-        val typeArguments = this.arguments.map { arg ->
-            arg.type?.resolve()?.toTypeName() ?: STAR
-        }
-
-        val className = ClassName(pkg, simpleName)
-        val typeName = if (typeArguments.isNotEmpty()) {
-            className.parameterizedBy(typeArguments)
-        } else {
-            className
-        }
-
-        return if (this.nullability == Nullability.NULLABLE) {
-            typeName.copy(nullable = true)
-        } else {
-            typeName
-        }
     }
 }
