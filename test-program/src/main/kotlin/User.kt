@@ -7,8 +7,10 @@ import java.time.LocalDate
         DtoSpec("UserDTO", exclude = ["id"])
     ]
 )
+@MyAnnotation(metadata = "Hello")
 data class User(
     val id: Int? = null,
+    @MyAnnotation(metadata = "This is a field")
     val name: String,
     val birthDate: LocalDate
 )

@@ -8,8 +8,7 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.marcode.kdto.annotations.Dto
 import com.marcode.kdto.annotations.DtoSpec
 import com.marcode.kdto.processor.data.DtoDeclaration
-import com.marcode.kdto.processor.util.getArgument
-import kotlin.collections.emptyList
+import com.marcode.kdto.util.getArgument
 
 internal class DTOAnnotationProcessor(
     private val classDeclaration: KSClassDeclaration,
@@ -22,7 +21,8 @@ internal class DTOAnnotationProcessor(
     }
 
     private fun processDtoAnnotations(): List<DtoDeclaration> {
-        val dtoAnnotation = classDeclaration.annotations.firstOrNull { it.annotationType.resolve().declaration.qualifiedName?.asString()!! == Dto::class.qualifiedName }
+        val classAnnotations = classDeclaration.annotations
+        val dtoAnnotation = classAnnotations.firstOrNull { it.annotationType.resolve().declaration.qualifiedName?.asString()!! == Dto::class.qualifiedName }
             ?: run {
                 return emptyList()
             }
@@ -48,7 +48,8 @@ internal class DTOAnnotationProcessor(
                 originalClassName = classDeclaration.simpleName.asString(),
                 originalPackageName = classDeclaration.packageName.asString(),
                 dtoName = dtoSpec.dtoName,
-                includedProperties = properties.toList()
+                includedProperties = properties.toList(),
+                annotations = classAnnotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() != Dto::class.qualifiedName }.toList()
             )
         }
     }
