@@ -10,7 +10,7 @@ In your `build.gradle.kts` apply the plugin:
 plugins {
     kotlin("jvm") version "2.1.21"
     id("com.google.devtools.ksp") version "2.1.21-2.0.1" // KSP required
-    id("io.github.mjavoso.kdto.plugin") version "1.0.0-alpha01"
+    id("io.github.mjavoso.kdto.plugin") version "1.0.0-alpha02"
 }
 
 repositories {
@@ -39,7 +39,11 @@ fun User.toUserDTO(): UserDTO = UserDTO(
 ```
 
 To generate the DTO classes, run the Gradle task generateKDto. You can do this from the command line:
-`.\gradlew :generateKDto`, Or by using the Gradle tool window in IntelliJ IDEA, under the kdto task group.
+```
+.\gradlew :generateKDto
+```
+
+Or by using the Gradle tool window in IntelliJ IDEA, under the kdto task group.
 
 ## Features
 
@@ -49,4 +53,4 @@ To generate the DTO classes, run the Gradle task generateKDto. You can do this f
 - Generates mapping extension functions automatically.
 
 ## ToDo
-- [ ] Being able to pass annotations to the DTOs, for example, if a class is annotated with `@Serializable`
+- [X] Being able to pass annotations to the DTOs, for example, if a class is annotated with `@Serializable`
