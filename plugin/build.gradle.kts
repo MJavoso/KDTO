@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.mjavoso"
-version = "1.0.0-alpha01"
+version = "1.0.0-alpha02"
 
 dependencies {
     implementation(localGroovy())
@@ -62,6 +62,12 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["mavenJava"])
+    sign(publishing.publications)
     useGpgCmd()
+}
+
+tasks.register("listPublications") {
+    doLast {
+        println("Publications: ${publishing.publications.names}")
+    }
 }
