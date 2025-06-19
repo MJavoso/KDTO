@@ -1,6 +1,7 @@
 package com.marcode.kdto.generator
 
 import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.symbol.AnnotationUseSiteTarget
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.util.getFormattedValue
@@ -80,6 +81,21 @@ internal class DTOGenerator(
             val annotationDecl = annotation.annotationType.resolve().declaration
             val annotationClass = ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
             val annotationSpec = AnnotationSpec.builder(annotationClass)
+
+            annotation.useSiteTarget?.let { useSite ->
+                when (useSite) {
+                    AnnotationUseSiteTarget.FIELD -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.FIELD)
+                    AnnotationUseSiteTarget.PROPERTY -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.PROPERTY)
+                    AnnotationUseSiteTarget.GET -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.GET)
+                    AnnotationUseSiteTarget.SET -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.SET)
+                    AnnotationUseSiteTarget.RECEIVER -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.RECEIVER)
+                    AnnotationUseSiteTarget.SETPARAM -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.SETPARAM)
+                    AnnotationUseSiteTarget.FILE -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                    AnnotationUseSiteTarget.PARAM -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.PARAM)
+                    AnnotationUseSiteTarget.DELEGATE -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.DELEGATE)
+                }
+            }
+
             annotation.arguments.forEach { argument ->
                 val name = argument.name
                 val value = argument.getFormattedValue()
