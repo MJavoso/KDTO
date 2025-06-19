@@ -12,5 +12,6 @@ data class User(
     val id: Int? = null,
     @MyAnnotation(metadata = "This is a field")
     val name: String,
+    @field:MyAnnotation(metadata = "I am field")
     val birthDate: LocalDate
 )
