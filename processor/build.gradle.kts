@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.mjavoso"
-version = "1.0.0-alpha03"
+version = "1.0.0-beta01"
 
 val pluginVersion: String = version.toString()
 val pluginGroup: String = group.toString()
