@@ -38,6 +38,9 @@ internal class DTOAnnotationProcessor(
                 dtoSpec.exclude.isNotEmpty() -> classProperties.filterNot { it.simpleName.asString() in dtoSpec.exclude }
                 else -> classProperties
             }
+            val annotations = if (dtoSpec.includeAnnotations) {
+                classAnnotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() != Dto::class.qualifiedName }.toList()
+            } else emptyList()
             logger.info("Transfered properties: ${properties.map { it.simpleName.asString() }.toList()}")
             return@map DtoDeclaration(
                 packageName = packageName,
@@ -45,7 +48,7 @@ internal class DTOAnnotationProcessor(
                 originalPackageName = classDeclaration.packageName.asString(),
                 dtoName = dtoSpec.dtoName,
                 includedProperties = properties.toList(),
-                annotations = classAnnotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() != Dto::class.qualifiedName }.toList()
+                annotations = annotations
             )
         }
     }
@@ -58,7 +61,8 @@ internal class DTOAnnotationProcessor(
             val name = annotation.getArgument(0) ?: ""
             val include = annotation.getArgument<List<String>>("include")?.toTypedArray() ?: emptyArray()
             val exclude = annotation.getArgument<List<String>>("exclude")?.toTypedArray() ?: emptyArray()
-            DtoSpec(name, include, exclude)
+            val includeAnnotations = annotation.getArgument<Boolean>("includeAnnotations") ?: true
+            DtoSpec(name, include, exclude, includeAnnotations)
         }
     }
 }
