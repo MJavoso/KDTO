@@ -19,7 +19,9 @@ package com.marcode.kdto.annotations.definitions
  *
  *   This setting overrides the global setting defined in [@DtoDef][com.marcode.kdto.annotations.definitions.DtoDef]
  * @throws com.marcode.kdto.annotations.exceptions.PropertyNotFoundException
- * When [from] is provided, but property doesn't exist in the source class
+ * When [from] is provided, but property doesn't exist in the source class.
+ * @throws com.marcode.kdto.annotations.exceptions.DtoDefinitionConflictException if property is excluded on exclude
+ * list of [DtoDef][com.marcode.kdto.annotations.definitions.DtoDef]
  */
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.PROPERTY)
