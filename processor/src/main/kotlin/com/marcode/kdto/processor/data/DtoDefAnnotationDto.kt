@@ -1,9 +1,8 @@
 package com.marcode.kdto.processor.data
 
 import com.google.devtools.ksp.symbol.KSType
-import kotlin.reflect.KClass
 
-internal data class DtoDefAnnotation(
+internal data class DtoDefAnnotationDto(
     val sourceClass: KSType,
     val dtoName: String,
     val include: List<String>,
