@@ -14,11 +14,7 @@ internal class DTOAnnotationProcessor(
     private val classDeclaration: KSClassDeclaration,
     private val logger: KSPLogger
 ) {
-    val dtoDeclarations: List<DtoDeclaration>
-
-    init {
-        dtoDeclarations = processDtoAnnotations()
-    }
+    val dtoDeclarations = processDtoAnnotations()
 
     private fun processDtoAnnotations(): List<DtoDeclaration> {
         val classAnnotations = classDeclaration.annotations
