@@ -8,6 +8,6 @@ internal data class DtoDeclaration(
     val originalClassName: String,
     val originalPackageName: String,
     val dtoName: String,
-    val includedProperties: List<KSPropertyDeclaration>,
-    val annotations: List<KSAnnotation>
+    val includedProperties: List<DtoProperty>,
+    val classAnnotations: List<KSAnnotation>
 )

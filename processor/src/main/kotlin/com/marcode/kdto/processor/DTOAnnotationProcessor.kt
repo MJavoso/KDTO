@@ -8,7 +8,9 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.marcode.kdto.annotations.Dto
 import com.marcode.kdto.annotations.DtoSpec
 import com.marcode.kdto.processor.data.DtoDeclaration
+import com.marcode.kdto.processor.data.DtoProperty
 import com.marcode.kdto.util.getArgument
+import com.marcode.kdto.annotations.exceptions.PropertyNotFoundException
 
 internal class DTOAnnotationProcessor(
     private val classDeclaration: KSClassDeclaration,
@@ -34,8 +36,25 @@ internal class DTOAnnotationProcessor(
             logger.logging("Including properties: ${dtoSpec.include.contentToString()}")
             logger.logging("Excluding properties: ${dtoSpec.exclude.contentToString()}")
             val properties = when {
-                dtoSpec.include.isNotEmpty() -> classProperties.filter { it.simpleName.asString() in dtoSpec.include }
-                dtoSpec.exclude.isNotEmpty() -> classProperties.filterNot { it.simpleName.asString() in dtoSpec.exclude }
+                dtoSpec.include.isNotEmpty() -> {
+                    val classPropertyNames = classProperties.map { it.simpleName.asString() }.toSet()
+                    val includeSet = dtoSpec.include.toSet()
+                    val nonExistentProperties = includeSet - classPropertyNames
+                    if (nonExistentProperties.isNotEmpty()) {
+                        throw PropertyNotFoundException("Properties [${nonExistentProperties.joinToString()}] do not exist in class ${classDeclaration.packageName.asString()}")
+                    }
+                    classProperties.filter { it.simpleName.asString() in dtoSpec.include }
+                }
+                dtoSpec.exclude.isNotEmpty() -> {
+                    val classPropertyNames = classProperties.map { it.simpleName.asString() }.toSet()
+                    val excludeSet = dtoSpec.exclude.toSet()
+                    val nonExistentProperties = excludeSet - classPropertyNames
+                    if (nonExistentProperties.isNotEmpty()) {
+                        throw PropertyNotFoundException("Properties [${nonExistentProperties.joinToString()}] do not exist in class ${classDeclaration.packageName.asString()}")
+                    }
+
+                    classProperties.filterNot { it.simpleName.asString() in dtoSpec.exclude }
+                }
                 else -> classProperties
             }
             val annotations = if (dtoSpec.includeAnnotations) {
@@ -47,8 +66,10 @@ internal class DTOAnnotationProcessor(
                 originalClassName = classDeclaration.simpleName.asString(),
                 originalPackageName = classDeclaration.packageName.asString(),
                 dtoName = dtoSpec.dtoName,
-                includedProperties = properties.toList(),
-                annotations = annotations
+                includedProperties = properties.map { property ->
+                    DtoProperty(property, includeSourceAnnotations = dtoSpec.includeAnnotations)
+                }.toList(),
+                classAnnotations = annotations
             )
         }
     }
