@@ -31,7 +31,7 @@ internal class DTOGenerator(
                 fileSpec.addImport(packageName, className)
             }
 
-        fileSpec.addImport(dto.originalPackageName, dto.originalClassName)
+        fileSpec.addImport(dto.packageName, dto.originalClassName)
 
         val classSpec = TypeSpec.classBuilder(dto.dtoName)
             .addModifiers(KModifier.DATA)
@@ -69,8 +69,10 @@ internal class DTOGenerator(
                 .build()
             val propertySpec = PropertySpec.builder(name, typeName, KModifier.PUBLIC)
                 .initializer(name)
-
-            propertySpec.addAnnotations(annotateClassProperty(dtoProperty.property, dtoProperty.includeSourceAnnotations, dtoProperty.extraAnnotations))
+            if (dtoProperty.isSourceClassProperty && !dtoProperty.includeSourceAnnotations) {
+                return@forEach
+            }
+            propertySpec.addAnnotations(annotateClassProperty(dtoProperty.property, dtoProperty.includeSourceAnnotations, dtoProperty.sourceAnnotations))
             constructorSpec.addParameter(paramSpec)
             classSpec.addProperty(propertySpec.build())
         }
@@ -79,11 +81,11 @@ internal class DTOGenerator(
     private fun annotateClassProperty(
         property: KSPropertyDeclaration,
         includeSourceAnnotations: Boolean,
-        extraAnnotations: List<KSAnnotation> = emptyList(),
+        sourceAnnotations: List<KSAnnotation> = emptyList(),
     ): List<AnnotationSpec> {
         val annotations = if (includeSourceAnnotations) {
-            property.annotations.toList() + extraAnnotations
-        } else extraAnnotations
+            property.annotations.toList() + sourceAnnotations
+        } else sourceAnnotations
         return annotations.map { annotation ->
             val annotationDecl = annotation.annotationType.resolve().declaration
             val annotationClass = ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
@@ -148,13 +150,25 @@ internal class DTOGenerator(
     private fun DtoDeclaration.createMappperExtension(packageName: String): FunSpec {
         val dtoType = ClassName(packageName, dtoName)
         return FunSpec.builder("to$dtoName")
-            .receiver(ClassName(originalPackageName, originalClassName))
+            .receiver(ClassName(packageName, originalClassName))
+            .apply {
+                includedProperties.filter { !it.propertyExistsInSourceClass }.forEach { dtoProperty ->
+                    val propertyName = dtoProperty.property.simpleName.asString()
+                    addParameter(propertyName, dtoProperty.property.type.resolve().toTypeName())
+                }
+            }
             .returns(dtoType)
             .addCode(buildCodeBlock {
                 add("return %T(\n", dtoType)
                 includedProperties.forEach { dtoProperty ->
                     val propertyName = dtoProperty.property.simpleName.asString()
-                    add("\t%L = this.%L,\n", propertyName, propertyName)
+                    if (dtoProperty.from.isNotBlank()) {
+                        add("\t%L = this.%L\n", propertyName, dtoProperty.from)
+                    } else if (!dtoProperty.propertyExistsInSourceClass) {
+                        add("\t%L = %L,\n", propertyName, propertyName)
+                    } else {
+                        add("\t%L = this.%L,\n", propertyName, propertyName)
+                    }
                 }
                 add(")\n")
             })
