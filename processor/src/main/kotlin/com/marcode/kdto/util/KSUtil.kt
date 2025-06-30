@@ -13,7 +13,9 @@ import kotlin.reflect.KClass
 
 internal inline fun <reified T : Any> KSAnnotation.isOfType(classType: KClass<T>): Boolean {
     return this.annotationType.resolve()
-        .declaration.qualifiedName?.asString()?.equals(classType.qualifiedName) == true
+        .declaration.run {
+            qualifiedName?.asString() == classType.qualifiedName || simpleName.asString() == classType.simpleName
+        }
 }
 
 @Suppress("UNCHECKED_CAST")
