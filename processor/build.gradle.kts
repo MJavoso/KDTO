@@ -17,6 +17,8 @@ dependencies {
     implementation(libs.kotlin.poet)
     implementation(project(":annotations"))
     testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.compile.testing)
+    testImplementation(libs.kotlin.compile.testing.ksp)
 }
 
 kotlin {
