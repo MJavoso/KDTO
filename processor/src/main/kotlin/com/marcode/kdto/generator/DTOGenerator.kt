@@ -8,10 +8,12 @@ import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.util.getFormattedValue
 import com.marcode.kdto.util.toTypeName
 import com.squareup.kotlinpoet.*
+import kotlin.reflect.KClass
 
 internal class DTOGenerator(
     private val dtoDeclarations: List<DtoDeclaration>,
-    private val logger: KSPLogger
+    private val logger: KSPLogger,
+    private val filterAnnotations: List<KClass<out Annotation>> = emptyList()
 ) {
     val dtoFiles: List<FileSpec>
 
@@ -72,7 +74,13 @@ internal class DTOGenerator(
             if (dtoProperty.isSourceClassProperty && !dtoProperty.includeSourceAnnotations) {
                 return@forEach
             }
-            propertySpec.addAnnotations(annotateClassProperty(dtoProperty.property, dtoProperty.includeSourceAnnotations, dtoProperty.sourceAnnotations))
+            propertySpec.addAnnotations(
+                annotateClassProperty(
+                    dtoProperty.property,
+                    dtoProperty.includeSourceAnnotations,
+                    dtoProperty.sourceAnnotations
+                )
+            )
             constructorSpec.addParameter(paramSpec)
             classSpec.addProperty(propertySpec.build())
         }
@@ -86,37 +94,43 @@ internal class DTOGenerator(
         val annotations = if (includeSourceAnnotations) {
             property.annotations.toList() + sourceAnnotations
         } else sourceAnnotations
-        return annotations.map { annotation ->
-            val annotationDecl = annotation.annotationType.resolve().declaration
-            val annotationClass = ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
-            val annotationSpec = AnnotationSpec.builder(annotationClass)
-
-            annotation.useSiteTarget?.let { useSite ->
-                when (useSite) {
-                    AnnotationUseSiteTarget.FIELD -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.FIELD)
-                    AnnotationUseSiteTarget.PROPERTY -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.PROPERTY)
-                    AnnotationUseSiteTarget.GET -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.GET)
-                    AnnotationUseSiteTarget.SET -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.SET)
-                    AnnotationUseSiteTarget.RECEIVER -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.RECEIVER)
-                    AnnotationUseSiteTarget.SETPARAM -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.SETPARAM)
-                    AnnotationUseSiteTarget.FILE -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
-                    AnnotationUseSiteTarget.PARAM -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.PARAM)
-                    AnnotationUseSiteTarget.DELEGATE -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.DELEGATE)
-                    AnnotationUseSiteTarget.ALL -> Unit
-                }
+        return annotations
+            .filterNot { annotation ->
+                val annotationDecl = annotation.annotationType.resolve().declaration
+                filterAnnotations.any { it.qualifiedName == annotationDecl.qualifiedName?.asString() || it.simpleName == annotationDecl.simpleName.asString() }
             }
+            .map { annotation ->
+                val annotationDecl = annotation.annotationType.resolve().declaration
+                val annotationClass =
+                    ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
+                val annotationSpec = AnnotationSpec.builder(annotationClass)
 
-            annotation.arguments.forEach { argument ->
-                val name = argument.name
-                val value = argument.getFormattedValue()
-                if (name != null) {
-                    annotationSpec.addMember("%L = %L", name.asString(), value)
-                } else {
-                    annotationSpec.addMember("%L", value)
+                annotation.useSiteTarget?.let { useSite ->
+                    when (useSite) {
+                        AnnotationUseSiteTarget.FIELD -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.FIELD)
+                        AnnotationUseSiteTarget.PROPERTY -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.PROPERTY)
+                        AnnotationUseSiteTarget.GET -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.GET)
+                        AnnotationUseSiteTarget.SET -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.SET)
+                        AnnotationUseSiteTarget.RECEIVER -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.RECEIVER)
+                        AnnotationUseSiteTarget.SETPARAM -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.SETPARAM)
+                        AnnotationUseSiteTarget.FILE -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.FILE)
+                        AnnotationUseSiteTarget.PARAM -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.PARAM)
+                        AnnotationUseSiteTarget.DELEGATE -> annotationSpec.useSiteTarget(AnnotationSpec.UseSiteTarget.DELEGATE)
+                        AnnotationUseSiteTarget.ALL -> Unit
+                    }
                 }
-            }
-            annotationSpec.build()
-        }.toList()
+
+                annotation.arguments.forEach { argument ->
+                    val name = argument.name
+                    val value = argument.getFormattedValue()
+                    if (name != null) {
+                        annotationSpec.addMember("%L = %L", name.asString(), value)
+                    } else {
+                        annotationSpec.addMember("%L", value)
+                    }
+                }
+                annotationSpec.build()
+            }.toList()
     }
 
     private fun DtoDeclaration.addAnnotations(
