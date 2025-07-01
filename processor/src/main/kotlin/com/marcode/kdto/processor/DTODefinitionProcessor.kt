@@ -53,7 +53,7 @@ internal class DTODefinitionProcessor(
             .filter { it.simpleName.asString() in sourceClassConstructorParams }
 
         val includedSourceProperties = getIncludedPropertiesFromSourceClass(dtoDefAnnotation, sourceClassProperties)
-        val sourceAnnotations = if (dtoDefAnnotation.includeSourceAnnotations) {
+        val sourceAnnotations = if (dtoDefAnnotation.includeClassSourceAnnotations) {
             sourceClass.annotations.filterNot {
                 it.isOfType(Dto::class) // Source class may also use regular Dto annotation.
             }.toList()
@@ -253,7 +253,7 @@ internal class DTODefinitionProcessor(
         val dtoName = getArgument<String>("dtoName") ?: ""
         val include = getArgument<List<String>>("include") ?: emptyList()
         val exclude = getArgument<List<String>>("exclude") ?: emptyList()
-        val includeSourceAnnotations = getArgument<Boolean>("includeSourceAnnotations") ?: true
+        val includeClassSourceAnnotations = getArgument<Boolean>("includeClassSourceAnnotations") ?: true
         val includePropertySourceAnnotations = getArgument<Boolean>("includePropertySourceAnnotations") ?: true
 
         return DtoDefAnnotationDto(
@@ -261,7 +261,7 @@ internal class DTODefinitionProcessor(
             dtoName = dtoName,
             include = include,
             exclude = exclude,
-            includeSourceAnnotations = includeSourceAnnotations,
+            includeClassSourceAnnotations = includeClassSourceAnnotations,
             includePropertySourceAnnotations = includePropertySourceAnnotations
         )
     }

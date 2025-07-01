@@ -7,6 +7,6 @@ internal data class DtoDefAnnotationDto(
     val dtoName: String,
     val include: List<String>,
     val exclude: List<String>,
-    val includeSourceAnnotations: Boolean,
+    val includeClassSourceAnnotations: Boolean,
     val includePropertySourceAnnotations: Boolean
 )

@@ -272,7 +272,7 @@ class DtoDefinitionTests {
         @DtoDef(
             sourceClass = User::class,
             exclude = ["id"],
-            includeSourceAnnotations = false
+            includeClassSourceAnnotations = false
         )
         private interface UserDto {
             val nickname: String
@@ -320,7 +320,7 @@ class DtoDefinitionTests {
         @DtoDef(
             sourceClass = User::class,
             exclude = ["id"],
-            includeSourceAnnotations = false,
+            includeClassSourceAnnotations = false,
             includePropertySourceAnnotations = false
         )
         private interface UserDto {

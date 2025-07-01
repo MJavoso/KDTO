@@ -47,7 +47,7 @@ import kotlin.reflect.KClass
  * @property dtoName the name for the auto generated DTO. If empty, the DTO name will be the name of the annotated interface
  * @property include Array of property names to include. If empty, all properties except excluded ones are included.
  * @property exclude Array of property names to exclude.
- * @property includeSourceAnnotations Controls class-level annotation inheritance in the generated DTO:
+ * @property includeClassSourceAnnotations Controls class-level annotation inheritance in the generated DTO:
  *   - When `true`: The generated DTO class will include both annotations from the source class
  *     AND any annotations defined on the interface
  *   - When `false`: The generated DTO class will only include annotations defined on the interface
@@ -70,6 +70,6 @@ annotation class DtoDef(
     val dtoName: String = "",
     val include: Array<String> = [],
     val exclude: Array<String> = [],
-    val includeSourceAnnotations: Boolean = true,
+    val includeClassSourceAnnotations: Boolean = true,
     val includePropertySourceAnnotations: Boolean = true
 )
