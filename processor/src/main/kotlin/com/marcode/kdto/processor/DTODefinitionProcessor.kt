@@ -143,8 +143,9 @@ internal class DTODefinitionProcessor(
         logger.logging("Processing DtoProperty ${property.simpleName.asString()}")
         if (dtoPropertyAnnotation.from.isNotBlank()) {
             if (!includedSourceProperties.any { it.simpleName.asString() == dtoPropertyAnnotation.from }) {
+                val excludedHint = if (dtoPropertyAnnotation.from in dtoDefAnnotation.exclude) "(variable is in excluded list.) " else ""
                 throw PropertyNotFoundException(
-                    "Property ${property.simpleName.asString()} in class ${classDeclaration.qualifiedName?.asString()} " +
+                    "${excludedHint}Property ${property.simpleName.asString()} in class ${classDeclaration.qualifiedName?.asString()} " +
                             "references non-existent source property '${dtoPropertyAnnotation.from}' in class ${sourceClass.qualifiedName?.asString()}"
                 )
             }
