@@ -12,7 +12,8 @@ package com.marcode.kdto.annotations.exceptions
  *    is not marked as `private`
  *  - No explicit `dtoName` is specified in the [@DtoDef][com.marcode.kdto.annotations.definitions.DtoDef]
  *    annotation
- *
+ * 3. When a property defined in the annotated interface declares "from" field in
+ * [@DtoProperty][com.marcode.kdto.annotations.definitions.DtoProperty] annotation, but the property doesn't exist in the source class.
  *
  * @see DtoDef
  */
