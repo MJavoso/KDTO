@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.mjavoso"
-version = "1.0.0-alpha03"
+version = "1.0.0-beta01"
 
 val pluginVersion: String = version.toString()
 val pluginGroup: String = group.toString()
@@ -17,6 +17,8 @@ dependencies {
     implementation(libs.kotlin.poet)
     implementation(project(":annotations"))
     testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.compile.testing)
+    testImplementation(libs.kotlin.compile.testing.ksp)
 }
 
 kotlin {

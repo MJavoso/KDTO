@@ -9,6 +9,14 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.TypeName
+import kotlin.reflect.KClass
+
+internal inline fun <reified T : Any> KSAnnotation.isOfType(classType: KClass<T>): Boolean {
+    return this.annotationType.resolve()
+        .declaration.run {
+            qualifiedName?.asString() == classType.qualifiedName || simpleName.asString() == classType.simpleName
+        }
+}
 
 @Suppress("UNCHECKED_CAST")
 internal fun <T> KSAnnotation.getArgument(index: Int): T? {
