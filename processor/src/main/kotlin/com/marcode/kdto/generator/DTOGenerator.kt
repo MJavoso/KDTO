@@ -42,7 +42,7 @@ internal class DTOGenerator(
         dto.addClassProperties(classSpec, constructorSpec)
 
         classSpec.primaryConstructor(constructorSpec.build())
-        dto.addAnnotations(fileSpec, classSpec)
+        dto.addClassAnnotations(fileSpec, classSpec)
         fileSpec.addType(classSpec.build())
 
         fileSpec.addFunction(dto.createMappperExtension(fileSpec.packageName))
@@ -65,6 +65,7 @@ internal class DTOGenerator(
 
     private fun DtoDeclaration.addClassProperties(classSpec: TypeSpec.Builder, constructorSpec: FunSpec.Builder) {
         this.includedProperties.forEach { dtoProperty ->
+            logger.logging("Adding $dtoProperty to generated DTO")
             val name = dtoProperty.property.simpleName.asString()
             val typeName = dtoProperty.property.type.resolve().toTypeName()
             val paramSpec = ParameterSpec.builder(name, typeName)
@@ -72,8 +73,11 @@ internal class DTOGenerator(
             val propertySpec = PropertySpec.builder(name, typeName, KModifier.PUBLIC)
                 .initializer(name)
             if (dtoProperty.isSourceClassProperty && !dtoProperty.includeSourceAnnotations) {
+                logger.logging("Property comes from source class and source annotations are not included. Skipping it.")
                 return@forEach
             }
+            logger.logging("Include source annotations: ${dtoProperty.includeSourceAnnotations}")
+            logger.logging("Source annotations: ${dtoProperty.sourceAnnotations.joinToString { it.shortName.asString() }}")
             propertySpec.addAnnotations(
                 annotateClassProperty(
                     dtoProperty.property,
@@ -133,7 +137,7 @@ internal class DTOGenerator(
             }.toList()
     }
 
-    private fun DtoDeclaration.addAnnotations(
+    private fun DtoDeclaration.addClassAnnotations(
         fileSpec: FileSpec.Builder,
         classSpec: TypeSpec.Builder,
     ) {
