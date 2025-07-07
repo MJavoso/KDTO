@@ -142,4 +142,57 @@ class DtoTests {
         assertContains(classContent, "data class UserDto(", ignoreCase = true)
         assertFalse("@TestAnnotation" in classContent, "Generated class includes source annotation")
     }
+
+    @Test
+    fun `@Dto handles array values in annotations without stack overflow`() {
+        val source = SourceFile.kotlin(
+            "Table.kt", """
+        import com.marcode.kdto.annotations.Dto
+        import com.marcode.kdto.annotations.DtoSpec
+        
+        annotation class AllowedIntValues(
+            val values: IntArray,
+            val message: String = "Invalid value"
+        )
+        
+        @Dto(
+            dtoSpec = [
+                DtoSpec("TableDto", exclude = ["id"])
+            ]
+        )
+        data class Table(
+            val id: Int,
+            @field:AllowedIntValues(
+                values = [2, 4, 8, 12, 20],
+                message = "Table capacity is not in the allowed range"
+            )
+            val capacity: Int,
+            val number: Int
+        )
+    """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            symbolProcessorProviders = listOf(KDTOProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        val kotlinFile = compilation.kspSourcesDir.resolve("kotlin")
+        val generatedClassPath = kotlinFile.resolve("generated/TableDto.kt")
+
+        // Verify successful compilation
+        assertFalse("StackOverflowError" in result.messages, "StackOverflowError found in compilation output")
+
+        assertTrue("Generated class does not exist", generatedClassPath.exists())
+        val classContent = generatedClassPath.readText().trimIndent()
+
+        assertContains(
+            classContent,
+            "@field:AllowedIntValues",
+            ignoreCase = true,
+            message = "Array values not properly formatted in annotation"
+        )
+    }
 }

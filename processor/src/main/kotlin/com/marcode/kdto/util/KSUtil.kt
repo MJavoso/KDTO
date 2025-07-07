@@ -28,11 +28,13 @@ internal fun <T> KSAnnotation.getArgument(argumentName: String): T? {
     return arguments.firstOrNull { it.name?.asString() == argumentName }?.value as? T
 }
 
-internal fun KSValueArgument.getFormattedValue(): String = when(val value = this.value) {
+internal fun KSValueArgument.getFormattedValue(): String = getFormattedValue(this.value)
+
+private fun getFormattedValue(value: Any?): String = when(value) {
     is String ->  "\"${value}\""
     is Char -> "'$value'"
     is Boolean, is Short, is Byte, is Int, is Float, is Double, is Long -> value.toString()
-    is List<*> -> value.joinToString(separator = ", ", prefix = "[", postfix = "]") { getFormattedValue() }
+    is List<*> -> value.joinToString(separator = ", ", prefix = "[", postfix = "]") { getFormattedValue(it) }
     is KSType -> {
         val decl = value.declaration
         val className = decl.qualifiedName?.asString() ?: decl.simpleName.asString()
