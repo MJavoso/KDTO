@@ -63,7 +63,7 @@ internal class DTOAnnotationProcessor(
             val includeSet = dtoSpec.include.toSet()
             val nonExistentProperties = includeSet - classPropertyNames
             if (nonExistentProperties.isNotEmpty()) {
-                throw PropertyNotFoundException("Properties [${nonExistentProperties.joinToString()}] do not exist in class ${classDeclaration.packageName.asString()}")
+                throw PropertyNotFoundException("Properties [${nonExistentProperties.joinToString()}] do not exist in class ${classDeclaration.qualifiedName?.asString()}")
             }
             classProperties.filter { it.simpleName.asString() in dtoSpec.include }
         }
@@ -73,7 +73,7 @@ internal class DTOAnnotationProcessor(
             val excludeSet = dtoSpec.exclude.toSet()
             val nonExistentProperties = excludeSet - classPropertyNames
             if (nonExistentProperties.isNotEmpty()) {
-                throw PropertyNotFoundException("Properties [${nonExistentProperties.joinToString()}] do not exist in class ${classDeclaration.packageName.asString()}")
+                throw PropertyNotFoundException("Properties [${nonExistentProperties.joinToString()}] do not exist in class ${classDeclaration.qualifiedName?.asString()}")
             }
 
             classProperties.filterNot { it.simpleName.asString() in dtoSpec.exclude }
