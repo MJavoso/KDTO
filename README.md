@@ -10,7 +10,7 @@ In your `build.gradle.kts` apply the plugin:
 plugins {
     kotlin("jvm") version "2.2.0"
     id("com.google.devtools.ksp") version "2.2.0-2.0.2" // KSP required
-    id("io.github.mjavoso.kdto.plugin") version "1.0.0-beta01"
+    id("io.github.mjavoso.kdto.plugin") version "1.0.0"
 }
 
 repositories {
