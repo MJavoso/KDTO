@@ -3,7 +3,7 @@ package com.marcode.kdto.plugin
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 internal object Versions {
-    val kdtoProcessor = "1.0.0"
+    val kdtoProcessor = "1.0.1"
     val kdtoAnnotations = "1.0.0"
 }
 
