@@ -1,38 +1,8 @@
 # KDTO
 
-<style>
-.badge {
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    background-color: #212121;
-    padding: 0 8px 0 0;
-}
+![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/io.github.mjavoso.kdto.plugin?logo=gradle&label=Gradle%20plugin)
+![Kotlin Version](https://img.shields.io/gradle-plugin-portal/v/org.jetbrains.kotlin.jvm?logo=kotlin&logoColor=white&label=Kotlin&color=7f52ff)
 
-.ml {
-    margin-left: 8px;
-}
-
-.row {
-    display: flex;
-    flex-direction: row;
-
-    & > :not(:last-child) {
-        margin-right: 10px;
-    }
-}
-</style>
-
-<section class="row">
-    <div class="badge">
-        <img src="https://img.shields.io/badge/Gradle-02303A.svg?style=for-the-badge&logo=Gradle&logoColor=white)" alt="Gradle"/>
-        <b class="ml">1.0.1</b>
-    </div>
-    <div class="badge">
-        <img src="https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
-        <b class="ml">2.2.0</b>
-    </div>
-</section>
 
 **KDTO** is a Kotlin Symbol Processor (KSP) that generates multiple DTOs from a single class. It helps reduce boilerplate by automatically creating DTO classes and their corresponding mapping functions.
 
