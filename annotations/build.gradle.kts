@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.mjavoso"
-version = "1.0.0"
+version = libs.versions.kdto.annotations.get()
 
 val pluginVersion: String = version.toString()
 val pluginGroup: String = group.toString()

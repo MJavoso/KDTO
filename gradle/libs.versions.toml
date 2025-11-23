@@ -1,8 +1,14 @@
 [versions]
-kotlin = "2.2.0"
+# Library Versions
+kdto-annotations = "1.0.1"
+kdto-processor = "1.0.2"
+kdto-plugin = "1.0.2"
+
+# Dependencies Versions
+kotlin = "2.2.21"
 kotlin-poet = "2.2.0"
 kotlin-compile-testing = "1.6.0"
-ksp = "2.2.0-2.0.2"
+ksp = "2.3.3"
 jreleaser = "1.17.0"
 gradle-publish = "1.2.1"
 

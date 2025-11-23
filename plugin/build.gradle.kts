@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.mjavoso"
-version = "1.0.1"
+version = libs.versions.kdto.plugin.get()
 
 dependencies {
     implementation(localGroovy())
