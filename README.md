@@ -1,7 +1,7 @@
 # KDTO
 
 ![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/io.github.mjavoso.kdto.plugin?logo=gradle&label=Gradle%20plugin)
-![Kotlin Version](https://img.shields.io/gradle-plugin-portal/v/org.jetbrains.kotlin.jvm?logo=kotlin&logoColor=white&label=Kotlin&color=7f52ff)
+![Kotlin Version](https://img.shields.io/badge/Kotlin-2.2.21-8A2BE2?logo=kotlin&logoColor=white)
 
 
 **KDTO** is a Kotlin Symbol Processor (KSP) that generates multiple DTOs from a single class. It helps reduce boilerplate by automatically creating DTO classes and their corresponding mapping functions.
@@ -12,9 +12,9 @@ Inspired by tools like Django’s ability to include or exclude fields when gene
 In your `build.gradle.kts` apply the plugin:
 ````kotlin
 plugins {
-    kotlin("jvm") version "2.2.0"
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2" // KSP required
-    id("io.github.mjavoso.kdto.plugin") version "1.0.1"
+    kotlin("jvm") version "2.2.21"
+    id("com.google.devtools.ksp") version "2.3.3" // KSP required
+    id("io.github.mjavoso.kdto.plugin") version "1.0.2"
 }
 
 repositories {
