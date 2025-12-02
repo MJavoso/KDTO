@@ -59,6 +59,7 @@ import kotlin.reflect.KClass
  *   - When `false`: Properties in the generated DTO will only include annotations defined on the interface properties
  *   Note: This is a global setting that can be overridden for individual properties using
  *   [@DtoProperty][com.marcode.kdto.annotations.definitions.DtoProperty]
+ * @property ignoreAnnotationDefaultValues Controls whether annotation default values should be ignored when generating the DTO.
  * @throws com.marcode.kdto.annotations.exceptions.PropertyNotFoundException if properties defined in [include] or [exclude] are not found on source class
  * @throws com.marcode.kdto.annotations.exceptions.DtoDefinitionConflictException when interface is not private and no [dtoName] is provided. For more information,
  * see [DtoDefinitionConflictException][com.marcode.kdto.annotations.exceptions.DtoDefinitionConflictException]'s documentation
@@ -71,5 +72,6 @@ annotation class DtoDef(
     val include: Array<String> = [],
     val exclude: Array<String> = [],
     val includeClassSourceAnnotations: Boolean = true,
-    val includePropertySourceAnnotations: Boolean = true
+    val includePropertySourceAnnotations: Boolean = true,
+    val ignoreAnnotationDefaultValues: Boolean = true
 )

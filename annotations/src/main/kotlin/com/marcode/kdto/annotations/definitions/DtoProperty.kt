@@ -18,6 +18,7 @@ package com.marcode.kdto.annotations.definitions
  *     interface property.
  *
  *   This setting overrides the global setting defined in [@DtoDef][com.marcode.kdto.annotations.definitions.DtoDef]
+ * @property ignoreAnnotationDefaultValues Controls whether annotation default values should be ignored when generating the DTO.
  * @throws com.marcode.kdto.annotations.exceptions.PropertyNotFoundException
  * When [from] is provided, but property doesn't exist in the source class.
  * @throws com.marcode.kdto.annotations.exceptions.DtoDefinitionConflictException if property is excluded on exclude
@@ -27,5 +28,6 @@ package com.marcode.kdto.annotations.definitions
 @Target(AnnotationTarget.PROPERTY)
 annotation class DtoProperty(
     val from: String = "",
-    val includeSourceAnnotations: Boolean = true
+    val includeSourceAnnotations: Boolean = true,
+    val ignoreAnnotationDefaultValues: Boolean = true
 )
