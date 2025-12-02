@@ -14,7 +14,7 @@ In your `build.gradle.kts` apply the plugin:
 plugins {
     kotlin("jvm") version "2.2.21"
     id("com.google.devtools.ksp") version "2.3.3" // KSP required
-    id("io.github.mjavoso.kdto.plugin") version "1.0.2"
+    id("io.github.mjavoso.kdto.plugin") version "1.0.3"
 }
 
 repositories {
@@ -47,6 +47,8 @@ fun User.toUserDTO(): UserDTO = UserDTO(
 ### Classes with @DtoDef
 
 You can also create your DTOs with the `@DtoDef` annotation, which gives you more control over the generation, unlike `@Dto` with basic configuration.
+
+When defining a DTO using this approach, you can also customize every property individually using `@DtoProperty`.
 
 ```kotlin
 // Spring Boot example
@@ -98,6 +100,47 @@ fun User.toUserRequest(customField: Int): UserRequest = UserRequest(
 ```
 
 Generated mapper function will require you to pass fields that do not exist in the source class.
+
+Also, if you annotate your interface with any extra annotations, they will be included in the generated DTO class. Let's consider the following example:
+
+```kotlin
+@kotlinx.serialization.Serializable // Make class also compatible with kotlinx.serialization API
+data class User(
+    val id: Int,
+    @field:NotBlank(message = "First name is required")
+    val name: String,
+    val lastName: String,
+    val password: String
+)
+
+@DtoDef(
+    sourceClass = User::class,
+    exclude = ["id"]
+)
+@MyAwesomeClassAnnotation // <- This annotation will be included in the generated DTO class
+private interface UserRequest {
+    @DtoProperty(
+        from = "name",
+        includeSourceAnnotations = false
+    )
+    @field:MyAwesomeAnnotation
+    val firstName: String
+    val customField: Int // Field not present in User class
+}
+```
+
+The generated DTO class will have the following declaration:
+```kotlin
+@kotlinx.serialization.Serializable
+@MyAwesomeClassAnnotation // <- This annotation comes from the interface
+data class UserRequest(
+    @field:MyAwesomeAnnotation // <- NotBlank not included
+    val firstName: String,
+    val lastName: String,
+    val password: String,
+    val customField: Int
+)
+```
 
 ## Generation
 
