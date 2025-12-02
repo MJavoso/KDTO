@@ -1,8 +1,8 @@
 [versions]
 # Library Versions
-kdto-annotations = "1.0.1"
-kdto-processor = "1.0.3"
-kdto-plugin = "1.0.3"
+kdto-annotations = "1.0.4"
+kdto-processor = "1.0.4"
+kdto-plugin = "1.0.4"
 
 # Dependencies Versions
 kotlin = "2.2.21"
