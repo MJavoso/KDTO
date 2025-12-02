@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.AnnotationUseSiteTarget
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.marcode.kdto.processor.data.AnnotationCollection
 import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.util.getFormattedValue
 import com.marcode.kdto.util.toTypeName
@@ -141,7 +142,17 @@ internal class DTOGenerator(
         fileSpec: FileSpec.Builder,
         classSpec: TypeSpec.Builder,
     ) {
-        classAnnotations.forEach { annotation ->
+        val sourceClassAnnotations = when (annotationCollection) {
+            is AnnotationCollection.DtoCollection -> annotationCollection.classAnnotations
+            is AnnotationCollection.DtoDefCollection -> annotationCollection.sourceClassAnnotations
+        }
+        val dtoDefinitionAnnotations = when (annotationCollection) {
+            is AnnotationCollection.DtoDefCollection -> annotationCollection.dtoDefinitionAnnotations
+            else -> emptyList()
+        }
+        logger.logging("Source class annotations: ${sourceClassAnnotations.joinToString { it.shortName.asString() }}")
+        logger.logging("DTO definition annotations: ${dtoDefinitionAnnotations.joinToString { it.shortName.asString() }}")
+        (sourceClassAnnotations + dtoDefinitionAnnotations).forEach { annotation ->
             val annotationDeclaration = annotation.annotationType.resolve().declaration
             val annotationClassName =
                 ClassName(annotationDeclaration.packageName.asString(), annotationDeclaration.simpleName.asString())

@@ -3,15 +3,12 @@ package com.marcode.kdto.processor
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSAnnotation
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.Visibility
+import com.google.devtools.ksp.symbol.*
 import com.marcode.kdto.annotations.Dto
 import com.marcode.kdto.annotations.definitions.DtoDef
 import com.marcode.kdto.annotations.exceptions.DtoDefinitionConflictException
 import com.marcode.kdto.annotations.exceptions.PropertyNotFoundException
+import com.marcode.kdto.processor.data.AnnotationCollection
 import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.processor.data.DtoDefAnnotationDto
 import com.marcode.kdto.processor.data.DtoProperty
@@ -37,11 +34,14 @@ internal class DTODefinitionProcessor(
 
     private fun processDtoDefAnnotations(): DtoDeclaration {
         val classAnnotations = classDeclaration.annotations
+        logger.logging("Class ${classDeclaration.qualifiedName?.asString()} has annotations: ${classAnnotations.joinToString { it.shortName.asString() }}")
         val dtoDefAnnotation = classAnnotations.firstOrNull { it.isOfType(DtoDef::class) }
             ?.toDtoDef()
             ?: run {
                 throw RuntimeException("Unknown error for ${classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString()}")
             }
+        val annotatedDtoClassAnnotations = classAnnotations.filter { !it.isOfType(DtoDef::class) }.toList()
+        logger.logging("Remaining annotations: ${annotatedDtoClassAnnotations.joinToString { it.shortName.asString() }}")
         if (dtoDefAnnotation.dtoName.isBlank() && classDeclaration.getVisibility() != Visibility.PRIVATE) {
             throw DtoDefinitionConflictException("Class ${classDeclaration.qualifiedName?.asString()} is not private and no explicit dto name was provided.")
         }
@@ -89,7 +89,10 @@ internal class DTODefinitionProcessor(
             originalClassName = sourceClass.simpleName.asString(),
             dtoName = dtoDefAnnotation.dtoName.takeIf { it.isNotBlank() } ?: classDeclaration.simpleName.asString(),
             includedProperties = includedProperties,
-            classAnnotations = sourceAnnotations
+            annotationCollection = AnnotationCollection.DtoDefCollection(
+                sourceClassAnnotations = sourceAnnotations,
+                dtoDefinitionAnnotations = annotatedDtoClassAnnotations
+            )
         )
     }
 
