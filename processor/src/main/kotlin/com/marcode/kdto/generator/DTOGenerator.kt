@@ -81,7 +81,8 @@ internal class DTOGenerator(
                 annotateClassProperty(
                     dtoProperty.property,
                     dtoProperty.includeSourceAnnotations,
-                    dtoProperty.sourceAnnotations
+                    sourceAnnotations = dtoProperty.sourceAnnotations,
+                    ignoreAnnotationDefaultValues = this.ignoreAnnotationDefaultValues,
                 )
             )
             constructorSpec.addParameter(paramSpec)
@@ -92,6 +93,7 @@ internal class DTOGenerator(
     private fun annotateClassProperty(
         property: KSPropertyDeclaration,
         includeSourceAnnotations: Boolean,
+        ignoreAnnotationDefaultValues: Boolean,
         sourceAnnotations: List<KSAnnotation> = emptyList(),
     ): List<AnnotationSpec> {
         val annotations = if (includeSourceAnnotations) {
@@ -106,7 +108,7 @@ internal class DTOGenerator(
                 val annotationDecl = annotation.annotationType.resolve().declaration
                 val annotationClass =
                     ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
-                val annotationSpec = annotation.buildAnnotationSpec(annotationClass, annotationDecl).toBuilder()
+                val annotationSpec = annotation.buildAnnotationSpec(annotationClass, ignoreAnnotationDefaultValues).toBuilder()
 
                 annotation.useSiteTarget?.let { useSite ->
                     when (useSite) {
@@ -145,7 +147,7 @@ internal class DTOGenerator(
             val annotationDeclaration = annotation.annotationType.resolve().declaration
             val annotationClassName =
                 ClassName(annotationDeclaration.packageName.asString(), annotationDeclaration.simpleName.asString())
-            val annotationSpec = annotation.buildAnnotationSpec(annotationClassName, annotationDeclaration)
+            val annotationSpec = annotation.buildAnnotationSpec(annotationClassName, this.ignoreAnnotationDefaultValues)
 
             fileSpec.addImport(
                 annotationDeclaration.packageName.asString(),
@@ -155,11 +157,12 @@ internal class DTOGenerator(
         }
     }
 
-    private fun KSAnnotation.buildAnnotationSpec(annotationClassName: ClassName, annotationDeclaration: KSDeclaration): AnnotationSpec {
+    private fun KSAnnotation.buildAnnotationSpec(annotationClassName: ClassName, ignoreAnnotationDefaultValues: Boolean): AnnotationSpec {
         val annotationSpec = AnnotationSpec.builder(annotationClassName)
+        logger.logging("Ignore annotation default values: $ignoreAnnotationDefaultValues")
 
         this.arguments.forEach { annotationArgument ->
-            if (annotationArgument.origin == Origin.SYNTHETIC) return@forEach
+            if (ignoreAnnotationDefaultValues && annotationArgument.origin == Origin.SYNTHETIC) return@forEach
 
             val argName = annotationArgument.name
             val argValue = annotationArgument.getFormattedValue()
