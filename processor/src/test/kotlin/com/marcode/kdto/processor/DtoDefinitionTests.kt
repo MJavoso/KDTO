@@ -254,6 +254,64 @@ class DtoDefinitionTests {
     }
 
     @Test
+    fun `@DtoDefinition inherits annotations from interface definition`() {
+        val source = SourceFile.kotlin(
+            "User.kt", """
+            import com.marcode.kdto.annotations.definitions.DtoDef
+            
+            annotation class ExtraAnnotation
+            
+            data class User(
+                val id: Int? = null,
+                val name: String,
+                val surname: String
+            )
+        
+            @DtoDef(
+                sourceClass = User::class,
+                exclude = ["id"]
+            )
+            @ExtraAnnotation
+            private interface UserDto {
+                val nickname: String
+            }
+        """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            symbolProcessorProviders = listOf(KDTOProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        val kotlinFile = compilation.kspSourcesDir.resolve("kotlin")
+        val generatedClassPath = kotlinFile.resolve("generated/UserDto.kt")
+
+        assertTrue("Generated class does not exist", generatedClassPath.exists())
+        val classContent = generatedClassPath.readText().trimIndent()
+
+        // Verificar que la clase se genera correctamente
+        assertContains(classContent, "data class UserDto(", ignoreCase = true)
+
+        // Verificar que la anotación de la interfaz de definición se hereda al DTO generado
+        assertContains(
+            classContent,
+            "@ExtraAnnotation",
+            ignoreCase = true,
+            "Generated DTO should inherit annotation from definition interface"
+        )
+
+        // Verificar que las propiedades se generan correctamente
+        assertContains(classContent, "val nickname: String", ignoreCase = true)
+        assertContains(classContent, "val name: String", ignoreCase = true)
+        assertContains(classContent, "val surname: String", ignoreCase = true)
+
+        // Verificar que la propiedad excluida no está presente
+        assertFalse("val id: Int" in classContent, "Generated class includes excluded property")
+    }
+
+    @Test
     fun `@DtoDefinition only inherits property annotations when class annotations are disabled`() {
         val source = SourceFile.kotlin(
             "User.kt", """

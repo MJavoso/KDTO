@@ -9,6 +9,7 @@ import com.google.devtools.ksp.symbol.KSValueArgument
 import com.marcode.kdto.annotations.Dto
 import com.marcode.kdto.annotations.DtoSpec
 import com.marcode.kdto.annotations.exceptions.PropertyNotFoundException
+import com.marcode.kdto.processor.data.AnnotationCollection
 import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.processor.data.DtoProperty
 import com.marcode.kdto.util.getArgument
@@ -49,7 +50,7 @@ internal class DTOAnnotationProcessor(
                 includedProperties = properties.map { property ->
                     DtoProperty(property, propertyExistsInSourceClass = true, includeSourceAnnotations = dtoSpec.includeAnnotations)
                 }.toList(),
-                classAnnotations = annotations
+                annotationCollection = AnnotationCollection.DtoCollection(annotations)
             )
         }
     }
