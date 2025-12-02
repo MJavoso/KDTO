@@ -1,12 +1,16 @@
 package com.marcode.kdto.processor.data
 
 import com.google.devtools.ksp.symbol.KSAnnotation
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 
 internal data class DtoDeclaration(
     val packageName: String,
     val originalClassName: String,
     val dtoName: String,
     val includedProperties: List<DtoProperty>,
-    val classAnnotations: List<KSAnnotation>
+    val annotationCollection: AnnotationCollection
 )
+
+internal sealed interface AnnotationCollection {
+    data class DtoCollection(val classAnnotations: List<KSAnnotation>): AnnotationCollection
+    data class DtoDefCollection(val sourceClassAnnotations: List<KSAnnotation>, val dtoDefinitionAnnotations: List<KSAnnotation>): AnnotationCollection
+}
