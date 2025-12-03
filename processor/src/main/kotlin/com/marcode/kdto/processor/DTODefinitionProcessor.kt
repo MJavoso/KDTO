@@ -92,7 +92,8 @@ internal class DTODefinitionProcessor(
             annotationCollection = AnnotationCollection.DtoDefCollection(
                 sourceClassAnnotations = sourceAnnotations,
                 dtoDefinitionAnnotations = annotatedDtoClassAnnotations
-            )
+            ),
+            ignoreAnnotationDefaultValues = dtoDefAnnotation.ignoreAnnotationDefaultValues
         )
     }
 
@@ -258,6 +259,7 @@ internal class DTODefinitionProcessor(
         val exclude = getArgument<List<String>>("exclude") ?: emptyList()
         val includeClassSourceAnnotations = getArgument<Boolean>("includeClassSourceAnnotations") ?: true
         val includePropertySourceAnnotations = getArgument<Boolean>("includePropertySourceAnnotations") ?: true
+        val ignoreAnnotationDefaultValues = getArgument<Boolean>("ignoreAnnotationDefaultValues") ?: true
 
         return DtoDefAnnotationDto(
             sourceClass = sourceClass,
@@ -265,7 +267,8 @@ internal class DTODefinitionProcessor(
             include = include,
             exclude = exclude,
             includeClassSourceAnnotations = includeClassSourceAnnotations,
-            includePropertySourceAnnotations = includePropertySourceAnnotations
+            includePropertySourceAnnotations = includePropertySourceAnnotations,
+            ignoreAnnotationDefaultValues = ignoreAnnotationDefaultValues
         )
     }
 

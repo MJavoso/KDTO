@@ -7,7 +7,8 @@ internal data class DtoDeclaration(
     val originalClassName: String,
     val dtoName: String,
     val includedProperties: List<DtoProperty>,
-    val annotationCollection: AnnotationCollection
+    val annotationCollection: AnnotationCollection,
+    val ignoreAnnotationDefaultValues: Boolean
 )
 
 internal sealed interface AnnotationCollection {

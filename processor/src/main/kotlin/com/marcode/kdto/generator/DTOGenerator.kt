@@ -1,9 +1,7 @@
 package com.marcode.kdto.generator
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.AnnotationUseSiteTarget
-import com.google.devtools.ksp.symbol.KSAnnotation
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.*
 import com.marcode.kdto.processor.data.AnnotationCollection
 import com.marcode.kdto.processor.data.DtoDeclaration
 import com.marcode.kdto.util.getFormattedValue
@@ -83,7 +81,8 @@ internal class DTOGenerator(
                 annotateClassProperty(
                     dtoProperty.property,
                     dtoProperty.includeSourceAnnotations,
-                    dtoProperty.sourceAnnotations
+                    sourceAnnotations = dtoProperty.sourceAnnotations,
+                    ignoreAnnotationDefaultValues = this.ignoreAnnotationDefaultValues,
                 )
             )
             constructorSpec.addParameter(paramSpec)
@@ -94,6 +93,7 @@ internal class DTOGenerator(
     private fun annotateClassProperty(
         property: KSPropertyDeclaration,
         includeSourceAnnotations: Boolean,
+        ignoreAnnotationDefaultValues: Boolean,
         sourceAnnotations: List<KSAnnotation> = emptyList(),
     ): List<AnnotationSpec> {
         val annotations = if (includeSourceAnnotations) {
@@ -108,7 +108,7 @@ internal class DTOGenerator(
                 val annotationDecl = annotation.annotationType.resolve().declaration
                 val annotationClass =
                     ClassName(annotationDecl.packageName.asString(), annotationDecl.simpleName.asString())
-                val annotationSpec = AnnotationSpec.builder(annotationClass)
+                val annotationSpec = annotation.buildAnnotationSpec(annotationClass, ignoreAnnotationDefaultValues).toBuilder()
 
                 annotation.useSiteTarget?.let { useSite ->
                     when (useSite) {
@@ -125,15 +125,6 @@ internal class DTOGenerator(
                     }
                 }
 
-                annotation.arguments.forEach { argument ->
-                    val name = argument.name
-                    val value = argument.getFormattedValue()
-                    if (name != null) {
-                        annotationSpec.addMember("%L = %L", name.asString(), value)
-                    } else {
-                        annotationSpec.addMember("%L", value)
-                    }
-                }
                 annotationSpec.build()
             }.toList()
     }
@@ -156,24 +147,33 @@ internal class DTOGenerator(
             val annotationDeclaration = annotation.annotationType.resolve().declaration
             val annotationClassName =
                 ClassName(annotationDeclaration.packageName.asString(), annotationDeclaration.simpleName.asString())
-            val annotationSpec = AnnotationSpec.builder(annotationClassName)
-
-            annotation.arguments.forEach { annotationArgument ->
-                val argName = annotationArgument.name
-                val argValue = annotationArgument.getFormattedValue()
-                if (argName != null) {
-                    annotationSpec.addMember("%L = %L", argName.asString(), argValue)
-                } else {
-                    annotationSpec.addMember("%L", argValue)
-                }
-            }
+            val annotationSpec = annotation.buildAnnotationSpec(annotationClassName, this.ignoreAnnotationDefaultValues)
 
             fileSpec.addImport(
                 annotationDeclaration.packageName.asString(),
                 annotationDeclaration.simpleName.asString()
             )
-            classSpec.addAnnotation(annotationSpec.build())
+            classSpec.addAnnotation(annotationSpec)
         }
+    }
+
+    private fun KSAnnotation.buildAnnotationSpec(annotationClassName: ClassName, ignoreAnnotationDefaultValues: Boolean): AnnotationSpec {
+        val annotationSpec = AnnotationSpec.builder(annotationClassName)
+        logger.logging("Ignore annotation default values: $ignoreAnnotationDefaultValues")
+
+        this.arguments.forEach { annotationArgument ->
+            if (ignoreAnnotationDefaultValues && annotationArgument.origin == Origin.SYNTHETIC) return@forEach
+
+            val argName = annotationArgument.name
+            val argValue = annotationArgument.getFormattedValue()
+            if (argName != null) {
+                annotationSpec.addMember("%L = %L", argName.asString(), argValue)
+            } else {
+                annotationSpec.addMember("%L", argValue)
+            }
+        }
+
+        return annotationSpec.build()
     }
 
     private fun DtoDeclaration.createMappperExtension(packageName: String): FunSpec {
