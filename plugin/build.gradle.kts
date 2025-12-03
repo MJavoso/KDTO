@@ -81,6 +81,10 @@ tasks.register("generateDependenciesFile") {
     }
 }
 
+tasks.named("compileKotlin") {
+    dependsOn("generateDependenciesFile")
+}
+
 gradlePlugin {
     website = "https://github.com/MJavoso/KDTO"
     vcsUrl = "https://github.com/MJavoso/KDTO.git"
