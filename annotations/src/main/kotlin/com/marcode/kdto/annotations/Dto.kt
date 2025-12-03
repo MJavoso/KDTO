@@ -21,9 +21,11 @@ package com.marcode.kdto.annotations
  * ```
  *
  * @property dtoSpec A non-empty array of DTO specifications.
+ * @property ignoreAnnotationDefaultValues Controls whether annotation default values should be ignored when generating the DTO.
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 annotation class Dto(
-    val dtoSpec: Array<DtoSpec>
+    val dtoSpec: Array<DtoSpec>,
+    val ignoreAnnotationDefaultValues: Boolean = true
 )

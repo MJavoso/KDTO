@@ -27,7 +27,8 @@ internal class DTOAnnotationProcessor(
             ?: run {
                 return emptyList()
             }
-        val dtoSpecs = dtoAnnotation.arguments[0].toDtoSpec()
+        val dtoSpecs = dtoAnnotation.getArgument<List<*>>("dtoSpec")?.toDtoSpec() ?: emptyList()
+        val ignoreAnnotationDefaultValues = dtoAnnotation.getArgument<Boolean>("ignoreAnnotationDefaultValues") ?: true
 
         val constructorParams = classDeclaration.primaryConstructor!!.parameters.mapNotNull { it.name?.asString() }.toSet()
         val classProperties = classDeclaration.getDeclaredProperties()
@@ -50,7 +51,8 @@ internal class DTOAnnotationProcessor(
                 includedProperties = properties.map { property ->
                     DtoProperty(property, propertyExistsInSourceClass = true, includeSourceAnnotations = dtoSpec.includeAnnotations)
                 }.toList(),
-                annotationCollection = AnnotationCollection.DtoCollection(annotations)
+                annotationCollection = AnnotationCollection.DtoCollection(annotations),
+                ignoreAnnotationDefaultValues = ignoreAnnotationDefaultValues
             )
         }
     }
@@ -84,9 +86,8 @@ internal class DTOAnnotationProcessor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun KSValueArgument.toDtoSpec(): List<DtoSpec> {
-        val specs = value as? List<*> ?: return emptyList()
-        return specs.mapNotNull { spec ->
+    private fun List<*>.toDtoSpec(): List<DtoSpec> {
+        return this.mapNotNull { spec ->
             val annotation = spec as? KSAnnotation ?: return@mapNotNull null
             val name = annotation.getArgument<String>("dtoName") ?: ""
             val include = annotation.getArgument<List<String>>("include")?.toTypedArray() ?: emptyArray()

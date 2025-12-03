@@ -14,7 +14,7 @@ In your `build.gradle.kts` apply the plugin:
 plugins {
     kotlin("jvm") version "2.2.21"
     id("com.google.devtools.ksp") version "2.3.3" // KSP required
-    id("io.github.mjavoso.kdto.plugin") version "1.0.3"
+    id("io.github.mjavoso.kdto.plugin") version "1.0.4"
 }
 
 repositories {

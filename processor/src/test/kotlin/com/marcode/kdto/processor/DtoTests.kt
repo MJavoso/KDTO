@@ -195,4 +195,195 @@ class DtoTests {
             message = "Array values not properly formatted in annotation"
         )
     }
+
+    @Test
+    fun `@Dto uses original annotation syntax when no explicit parameters provided`() {
+        val source = SourceFile.kotlin(
+            "User.kt", """
+            import com.marcode.kdto.annotations.Dto
+            import com.marcode.kdto.annotations.DtoSpec
+            
+            annotation class DefaultParamsAnnotation(val value: String = "default")
+            
+            @DefaultParamsAnnotation
+            @Dto(
+                dtoSpec = [
+                    DtoSpec("UserDto", exclude = ["id"])
+                ]
+            )
+            data class User(
+                val id: Int,
+                val name: String,
+                val email: String
+            )
+        """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            symbolProcessorProviders = listOf(KDTOProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        val kotlinFile = compilation.kspSourcesDir.resolve("kotlin")
+        val generatedClassPath = kotlinFile.resolve("generated/UserDto.kt")
+
+        assertTrue("Generated class does not exist", generatedClassPath.exists())
+        val classContent = generatedClassPath.readText().trimIndent()
+
+        // Verificar que la clase se genera correctamente
+        assertContains(classContent, "data class UserDto(", ignoreCase = true)
+
+        // Verificar que la anotación usa la sintaxis original sin paréntesis
+        assertContains(
+            classContent,
+            "@DefaultParamsAnnotation",
+            ignoreCase = false,
+            "Annotation should use original syntax without parentheses"
+        )
+
+        // Verificar que NO tiene paréntesis con el valor por defecto
+        assertFalse(
+            classContent.contains("@DefaultParamsAnnotation(") ||
+                    classContent.contains("@DefaultParamsAnnotation(value = \"default\")"),
+            "Annotation should not include default parameter value"
+        )
+
+        // Verificar que las propiedades se generan correctamente
+        assertContains(classContent, "val name: String", ignoreCase = true)
+        assertContains(classContent, "val email: String", ignoreCase = true)
+        assertFalse("val id: Int" in classContent, "Generated class includes excluded property")
+    }
+
+    @Test
+    fun `@Dto includes explicit annotation parameter value in generated class`() {
+        val source = SourceFile.kotlin(
+            "User.kt", """
+            import com.marcode.kdto.annotations.Dto
+            import com.marcode.kdto.annotations.DtoSpec
+            
+            annotation class DefaultParamsAnnotation(val value: String = "default")
+            
+            @DefaultParamsAnnotation("custom value")
+            @Dto(
+                dtoSpec = [
+                    DtoSpec("UserDto", exclude = ["id"])
+                ]
+            )
+            data class User(
+                val id: Int,
+                val name: String,
+                val email: String
+            )
+        """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            symbolProcessorProviders = listOf(KDTOProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        val kotlinFile = compilation.kspSourcesDir.resolve("kotlin")
+        val generatedClassPath = kotlinFile.resolve("generated/UserDto.kt")
+
+        assertTrue("Generated class does not exist", generatedClassPath.exists())
+        val classContent = generatedClassPath.readText().trimIndent()
+
+        // Verificar que la clase se genera correctamente
+        assertContains(classContent, "data class UserDto(", ignoreCase = true)
+
+        // Verificar que la anotación incluye el valor explícito proporcionado
+        assertContains(
+            classContent,
+            "@DefaultParamsAnnotation(",
+            ignoreCase = false,
+            "Annotation should include parentheses when explicit value is provided"
+        )
+
+        assertContains(
+            classContent,
+            "\"custom value\"",
+            ignoreCase = false,
+            "Annotation should include the explicit parameter value"
+        )
+
+        // Verificar que las propiedades se generan correctamente
+        assertContains(classContent, "val name: String", ignoreCase = true)
+        assertContains(classContent, "val email: String", ignoreCase = true)
+        assertFalse("val id: Int" in classContent, "Generated class includes excluded property")
+    }
+
+    @Test
+    fun `@Dto includes default annotation parameters when ignoreAnnotationDefaultValues is false`() {
+        val source = SourceFile.kotlin(
+            "User.kt", """
+            import com.marcode.kdto.annotations.Dto
+            import com.marcode.kdto.annotations.DtoSpec
+            
+            annotation class DefaultParamsAnnotation(val value: String = "default")
+            
+            @DefaultParamsAnnotation
+            @Dto(
+                dtoSpec = [
+                    DtoSpec("UserDto", exclude = ["id"])
+                ],
+                ignoreAnnotationDefaultValues = false
+            )
+            data class User(
+                val id: Int,
+                val name: String,
+                val email: String
+            )
+        """
+        )
+
+        val compilation = KotlinCompilation().apply {
+            sources = listOf(source)
+            symbolProcessorProviders = listOf(KDTOProcessorProvider())
+            inheritClassPath = true
+        }
+
+        val result = compilation.compile()
+        val kotlinFile = compilation.kspSourcesDir.resolve("kotlin")
+        val generatedClassPath = kotlinFile.resolve("generated/UserDto.kt")
+
+        assertTrue("Generated class does not exist", generatedClassPath.exists())
+        val classContent = generatedClassPath.readText().trimIndent()
+
+        // Verificar que la clase se genera correctamente
+        assertContains(classContent, "data class UserDto(", ignoreCase = true)
+
+        // Verificar que la anotación incluye paréntesis (comportamiento antiguo)
+        assertContains(
+            classContent,
+            "@DefaultParamsAnnotation(",
+            ignoreCase = false,
+            "Annotation should include parentheses when ignoreAnnotationDefaultValues is false"
+        )
+
+        // Verificar que incluye el valor por defecto explícitamente
+        assertContains(
+            classContent,
+            "value = \"default\"",
+            ignoreCase = false,
+            "Annotation should include default parameter value when ignoreAnnotationDefaultValues is false"
+        )
+
+        // Verificar que NO usa la sintaxis sin paréntesis
+        val annotationWithoutParens = classContent.lines().any { line ->
+            line.trim() == "@DefaultParamsAnnotation" && !line.contains("(")
+        }
+        assertFalse(
+            annotationWithoutParens,
+            "Annotation should not use syntax without parentheses when ignoreAnnotationDefaultValues is false"
+        )
+
+        // Verificar que las propiedades se generan correctamente
+        assertContains(classContent, "val name: String", ignoreCase = true)
+        assertContains(classContent, "val email: String", ignoreCase = true)
+        assertFalse("val id: Int" in classContent, "Generated class includes excluded property")
+    }
 }
